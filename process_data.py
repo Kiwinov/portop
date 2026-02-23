@@ -26,7 +26,7 @@ COMPANY_MAPPING = {
 }
 
 # Date Range for Stock Price Download
-START_DATE = "2020-01-01"
+START_DATE = "2019-01-01"
 END_DATE = "2025-12-31"
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -273,12 +273,174 @@ def compile_institutional_features(df_prices, df_quarterly, df_bs, df_cf, ticker
         return None
 
 
+import pandas as pd
+import numpy as np
+import os
+
+
+# =========================================================
+# TECHNICAL FEATURE ENGINEERING
+# =========================================================
+def feature_engineering_technicals(df):
+    feat = df.copy()
+
+    feat["Log_Return_1D"] = np.log(feat["Close"] / feat["Close"].shift(1))
+    feat["Log_Return_5D"] = feat["Log_Return_1D"].rolling(5, min_periods=1).sum()
+    feat["Log_Return_20D"] = feat["Log_Return_1D"].rolling(20, min_periods=1).sum()
+    feat["Log_Return_60D"] = feat["Log_Return_1D"].rolling(60, min_periods=1).sum()
+
+    rolling_max = feat["Close"].rolling(252, min_periods=1).max()
+    feat["Drawdown"] = (feat["Close"] / rolling_max) - 1
+
+    feat["SMA_20"] = feat["Close"].rolling(20, min_periods=1).mean()
+    feat["EMA_20"] = feat["Close"].ewm(span=20, adjust=False).mean()
+    feat["Dist_SMA_20"] = (feat["Close"] / feat["SMA_20"]) - 1
+    feat["Dist_EMA_20"] = (feat["Close"] / feat["EMA_20"]) - 1
+
+    delta = feat["Close"].diff()
+    gain = delta.where(delta > 0, 0).ewm(com=13, adjust=False).mean()
+    loss = (-delta.where(delta < 0, 0)).ewm(com=13, adjust=False).mean()
+    rs = gain / loss
+    feat["RSI_14"] = 100 - (100 / (1 + rs))
+
+    ema_12 = feat["Close"].ewm(span=12, adjust=False).mean()
+    ema_26 = feat["Close"].ewm(span=26, adjust=False).mean()
+    macd_line = ema_12 - ema_26
+    macd_signal = macd_line.ewm(span=9, adjust=False).mean()
+    feat["MACD_Histogram"] = (macd_line - macd_signal) / feat["Close"]
+
+    rolling_std = feat["Close"].rolling(20, min_periods=1).std()
+    upper_band = feat["SMA_20"] + (rolling_std * 2)
+    lower_band = feat["SMA_20"] - (rolling_std * 2)
+    feat["BB_Bandwidth"] = (upper_band - lower_band) / feat["SMA_20"]
+    feat["BB_PctB"] = (feat["Close"] - lower_band) / (upper_band - lower_band)
+
+    range_hl = (feat["High"] - feat["Low"]).replace(0, np.nan)
+    feat["Buying_Pressure"] = (feat["Close"] - feat["Low"]) / range_hl
+    feat["Selling_Pressure"] = (feat["High"] - feat["Close"]) / range_hl
+
+    feat["Return_Lag1"] = feat["Log_Return_1D"].shift(1)
+    feat["Return_Lag2"] = feat["Log_Return_1D"].shift(2)
+
+    vol_sma_20 = feat["Volume"].rolling(20, min_periods=1).mean()
+    feat["Volume_Attention_Today"] = feat["Volume"] / vol_sma_20
+    feat["Volume_Attention_Lag1"] = feat["Volume_Attention_Today"].shift(1)
+
+    drop_cols = ["Open", "High", "Low", "Close", "Volume", "SMA_20", "EMA_20"]
+    feat.drop(columns=[c for c in drop_cols if c in feat.columns], inplace=True)
+
+    feat.dropna(inplace=True)
+    return feat
+
+
+# =========================================================
+# MACRO ENGINEERING
+# =========================================================
+def engineer_exhaustive_macro(df):
+    m = df.copy()
+
+    m["Yield Gap"] = m["Earnings_Yield"] - m["India_10Y_Yield"]
+
+    for col in ["Crude_Oil", "Gold_Price", "USDINR", "SP500", "Nifty50"]:
+        m[f"{col}_Ret_1D"] = np.log(m[col] / m[col].shift(1))
+        m[f"{col}_Ret_5D"] = m[f"{col}_Ret_1D"].rolling(5, min_periods=1).sum()
+
+    m["Gold_Oil_Ratio"] = m["Gold_Price"] / m["Crude_Oil"]
+    m["Global_Equity_Diff"] = m["SP500_Ret_1D"] - m["Nifty50_Ret_1D"]
+    m["Domestic_Yield_Slope"] = m["India_10Y_Yield"] - m["Repo_Rate"]
+    m["Global_Yield_Spread"] = m["India_10Y_Yield"] - m["Global_Bond_Yield"]
+    m["Real_Rate"] = m["India_10Y_Yield"] - m["CPI"]
+
+    m["VIX_Level"] = m["India_VIX"]
+    m["VIX_Change"] = m["India_VIX"].diff()
+    m["Global_Vol_20D"] = m["SP500_Ret_1D"].rolling(20, min_periods=1).std()
+
+    drop_cols = [
+        "Crude_Oil",
+        "Gold_Price",
+        "USDINR",
+        "SP500",
+        "Global_Bond_Yield",
+        "Nifty50",
+        "India_VIX",
+        "India_10Y_Yield",
+        "Repo_Rate",
+        "CPI",
+    ]
+    m.drop(columns=[c for c in drop_cols if c in m.columns], inplace=True)
+
+    return m
+
+
+# =========================================================
+# FUNDAMENTAL ENGINEERING
+# =========================================================
+def feature_engineering_fundamentals(df):
+    f = df.copy()
+    DAYS_PER_YEAR = 252
+
+    def safe_growth(series, window):
+        return series / series.shift(window).fillna(series.iloc[0]) - 1
+
+    f["Rev_Growth_YoY"] = safe_growth(f["Annualized_Sales"], DAYS_PER_YEAR)
+    f["Profit_Growth_YoY"] = safe_growth(f["Annualized_Profit"], DAYS_PER_YEAR)
+    f["EPS_Growth_YoY"] = safe_growth(f["EPS_TTM"], DAYS_PER_YEAR)
+
+    f["Net_Profit_Margin"] = f["Net_Margin"]
+    f["Asset_Turnover_Ratio"] = f["Asset_Turnover"]
+    f["Equity_Multiplier_Ratio"] = f["Equity_Multiplier"]
+    f["DuPont_ROE_Check"] = f["DuPont_ROE"]
+
+    f["Earnings_Quality_Ratio"] = f["Earnings_Quality"]
+    f["D_E_Ratio"] = f["Debt_to_Equity"]
+
+    f["PE_to_Avg_1Y"] = (
+        f["Daily_PE"]
+        / f["Daily_PE"].rolling(window=DAYS_PER_YEAR, min_periods=1).mean()
+    )
+
+    raw_accounting = [
+        "Total Income From Operations",
+        "Profit_Base",
+        "Basic EPS",
+        "Annualized_Sales",
+        "Annualized_Profit",
+        "Equity Share Capital",
+        "Reserves",
+        "Borrowings",
+        "Total",
+        "Avg_Assets",
+        "Cash from Operating Activity",
+        "Total_Equity",
+        "EPS_TTM",
+        "Net_Margin",
+        "Asset_Turnover",
+        "Equity_Multiplier",
+        "DuPont_ROE",
+        "Debt_to_Equity",
+        "Daily_PE",
+        "Earnings_Quality",
+        "Earnings_Yield",
+    ]
+
+    f.drop(columns=[c for c in raw_accounting if c in f.columns], inplace=True)
+
+    return f
+
+
 # ==========================================
 # MAIN EXECUTION
 # ==========================================
 
 
 def main():
+    print("\nLoading macro.csv ...")
+
+    df_macro = pd.read_csv("macro.csv", parse_dates=["Date"])
+    df_macro.columns = df_macro.columns.str.strip()
+    df_macro.set_index("Date", inplace=True)
+    df_macro.sort_index(inplace=True)
+
     for company_name, ticker in COMPANY_MAPPING.items():
         print(f"\nProcessing {company_name.upper()} ({ticker})")
 
@@ -290,7 +452,7 @@ def main():
         if not (
             os.path.exists(path_q) and os.path.exists(path_b) and os.path.exists(path_c)
         ):
-            print(f"Skipping {company_name}: Missing one or more CSV files.")
+            print(f"Skipping {company_name}: Missing CSV.")
             continue
 
         df_prices = get_stock_prices(ticker, START_DATE, END_DATE)
@@ -301,12 +463,28 @@ def main():
 
         df_final = compile_institutional_features(df_prices, df_q, df_b, df_c, ticker)
 
-        if df_final is not None and not df_final.empty:
-            output_path = os.path.join(OUTPUT_DIR, f"{company_name}.csv")
-            df_final.to_csv(output_path)
-            print(f"Saved: {output_path}")
-        else:
+        if df_final is None or df_final.empty:
             print(f"Failed to generate output for {company_name}")
+
+        print("Applying technical features...")
+        df_final = feature_engineering_technicals(df_final)
+
+        macro_aligned = df_macro.reindex(df_final.index)
+        df_final = df_final.join(macro_aligned, how="left")
+
+        print("Engineering macro factors...")
+        df_final = engineer_exhaustive_macro(df_final)
+
+        print("Engineering fundamental features...")
+        df_final = feature_engineering_fundamentals(df_final)
+
+        df_final.dropna(inplace=True)
+
+        df_final = df_final.loc[df_final.index >= "2020-01-01"]
+
+        output_path = os.path.join(OUTPUT_DIR, f"{company_name}.csv")
+        df_final.to_csv(output_path)
+        print(f"Saved: {output_path}")
 
 
 if __name__ == "__main__":

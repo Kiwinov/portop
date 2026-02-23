@@ -34,3 +34,10 @@ features_new/hdfc.csv filter=lfs diff=lfs merge=lfs -text
 features_new/hul.csv filter=lfs diff=lfs merge=lfs -text
 features_new/infy.csv filter=lfs diff=lfs merge=lfs -text
 features/hdfc.csv filter=lfs diff=lfs merge=lfs -text
+macro.csv filter=lfs diff=lfs merge=lfs -text
+company_news_sentiment/BHARTIARTL_weekly_news_with_sentiment.csv filter=lfs diff=lfs merge=lfs -text
+company_news_sentiment/HDFCBANK_weekly_news_with_sentiment.csv filter=lfs diff=lfs merge=lfs -text
+company_news_sentiment/HUL_weekly_news_with_sentiment.csv filter=lfs diff=lfs merge=lfs -text
+company_news_sentiment/INFY_weekly_news_with_sentiment.csv filter=lfs diff=lfs merge=lfs -text
+company_news_sentiment/M&M_weekly_news_with_sentiment.csv filter=lfs diff=lfs merge=lfs -text
+company_news_sentiment/RELIANCE_weekly_news_with_sentiment.csv filter=lfs diff=lfs merge=lfs -text
