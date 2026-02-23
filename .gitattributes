@@ -27,3 +27,9 @@ raw_results/Hind.[[:space:]]Unilever.xlsx filter=lfs diff=lfs merge=lfs -text
 raw_results/Infosys.xlsx filter=lfs diff=lfs merge=lfs -text
 raw_results/M[[:space:]]&[[:space:]]M.xlsx filter=lfs diff=lfs merge=lfs -text
 raw_results/Reliance[[:space:]]Industries.xlsx filter=lfs diff=lfs merge=lfs -text
+features_new/mandm.csv filter=lfs diff=lfs merge=lfs -text
+features_new/reliance.csv filter=lfs diff=lfs merge=lfs -text
+features_new/airtel.csv filter=lfs diff=lfs merge=lfs -text
+features_new/hdfc.csv filter=lfs diff=lfs merge=lfs -text
+features_new/hul.csv filter=lfs diff=lfs merge=lfs -text
+features_new/infy.csv filter=lfs diff=lfs merge=lfs -text

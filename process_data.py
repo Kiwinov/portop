@@ -9,7 +9,7 @@ from pandas.tseries.offsets import MonthEnd
 # ==========================================
 
 INPUT_DIRS = {"quarterly": "quarterly", "balance": "balance_sheet", "cashflow": "cashflow"}
-OUTPUT_DIR = "features"
+OUTPUT_DIR = "features_new"
 
 # Company to Ticker Mapping
 COMPANY_MAPPING = {
