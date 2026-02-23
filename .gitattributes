@@ -53,3 +53,12 @@ company_news_sentiment/sentiment_scores/airtel.csv filter=lfs diff=lfs merge=lfs
 company_news_sentiment/sentiment_scores/hdfc.csv filter=lfs diff=lfs merge=lfs -text
 company_news_sentiment/sentiment_scores/hul.csv filter=lfs diff=lfs merge=lfs -text
 company_news_sentiment/sentiment_scores/infy.csv filter=lfs diff=lfs merge=lfs -text
+Merged_Predicted_Returns.csv filter=lfs diff=lfs merge=lfs -text
+results.xlsx filter=lfs diff=lfs merge=lfs -text
+Report.pdf filter=lfs diff=lfs merge=lfs -text
+ticker_returns/HUL_returns.csv filter=lfs diff=lfs merge=lfs -text
+ticker_returns/INFY_returns.csv filter=lfs diff=lfs merge=lfs -text
+ticker_returns/MANDM_returns.csv filter=lfs diff=lfs merge=lfs -text
+ticker_returns/AIRTEL_returns.csv filter=lfs diff=lfs merge=lfs -text
+ticker_returns/HDFC_returns.csv filter=lfs diff=lfs merge=lfs -text
+ticker_returns/RELIANCE_returns.csv filter=lfs diff=lfs merge=lfs -text
