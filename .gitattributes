@@ -41,3 +41,15 @@ company_news_sentiment/HUL_weekly_news_with_sentiment.csv filter=lfs diff=lfs me
 company_news_sentiment/INFY_weekly_news_with_sentiment.csv filter=lfs diff=lfs merge=lfs -text
 company_news_sentiment/M&M_weekly_news_with_sentiment.csv filter=lfs diff=lfs merge=lfs -text
 company_news_sentiment/RELIANCE_weekly_news_with_sentiment.csv filter=lfs diff=lfs merge=lfs -text
+company_news_sentiment/airtel.csv filter=lfs diff=lfs merge=lfs -text
+company_news_sentiment/hdfc.csv filter=lfs diff=lfs merge=lfs -text
+company_news_sentiment/hul.csv filter=lfs diff=lfs merge=lfs -text
+company_news_sentiment/infy.csv filter=lfs diff=lfs merge=lfs -text
+company_news_sentiment/mandm.csv filter=lfs diff=lfs merge=lfs -text
+company_news_sentiment/reliance.csv filter=lfs diff=lfs merge=lfs -text
+company_news_sentiment/sentiment_scores/mandm.csv filter=lfs diff=lfs merge=lfs -text
+company_news_sentiment/sentiment_scores/reliance.csv filter=lfs diff=lfs merge=lfs -text
+company_news_sentiment/sentiment_scores/airtel.csv filter=lfs diff=lfs merge=lfs -text
+company_news_sentiment/sentiment_scores/hdfc.csv filter=lfs diff=lfs merge=lfs -text
+company_news_sentiment/sentiment_scores/hul.csv filter=lfs diff=lfs merge=lfs -text
+company_news_sentiment/sentiment_scores/infy.csv filter=lfs diff=lfs merge=lfs -text
