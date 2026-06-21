@@ -1,6 +1,6 @@
-# Predict Equity
+# PortOp
 
-Predict Equity is a comprehensive stock return prediction and portfolio optimization system designed to leverage multi-dimensional data, including fundamental, technical, sentiment, and macroeconomic factors to forecast equity performance and construct optimized investment portfolios.
+PortOp is a comprehensive stock return prediction and portfolio optimization system designed to leverage multi-dimensional data, including fundamental, technical, sentiment, and macroeconomic factors to forecast equity performance and construct optimized investment portfolios.
 
 ## Project Overview
 
@@ -89,8 +89,8 @@ The final stage merges predicted returns for multiple tickers to find the optima
 
 1.  **Clone the repository**:
     ```bash
-    git clone https://github.com/your-repo/Predict_Equity.git
-    cd Predict_Equity
+    git clone https://github.com/your-repo/portop.git
+    cd portop
     ```
 2.  **Install dependencies**:
     ```bash
